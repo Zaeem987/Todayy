@@ -1,0 +1,53 @@
+:root {
+  /* default theme: Calm */
+  --bg: #F7F9FC;
+  --card: #FFFFFF;
+  --text: #1F2933;
+  --muted: #667085;
+  --border: #E5E7EB;
+  --primary: #4F8CFF;
+  --primaryText: #FFFFFF;
+  --success: #22C55E;
+  --overlay: rgba(0, 0, 0, 0.35);
+}
+
+/* Theme: Minimal */
+:root[data-theme='minimal'] {
+  --bg: #FFFFFF;
+  --card: #FFFFFF;
+  --text: #111827;
+  --muted: #4B5563;
+  --border: #E5E7EB;
+  --primary: #111827;
+  --primaryText: #FFFFFF;
+  --success: #22C55E;
+  --overlay: rgba(0, 0, 0, 0.35);
+}
+
+/* Theme: Warm */
+:root[data-theme='warm'] {
+  --bg: #FFF7ED;
+  --card: #FFFFFF;
+  --text: #3F2D20;
+  --muted: #6B4E3A;
+  --border: #FED7AA;
+  --primary: #F97316;
+  --primaryText: #FFFFFF;
+  --success: #16A34A;
+  --overlay: rgba(0, 0, 0, 0.35);
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+
+button, input, textarea, select {
+  font: inherit;
+  color: inherit;
+}
