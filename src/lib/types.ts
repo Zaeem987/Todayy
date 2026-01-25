@@ -1,19 +1,26 @@
-import type { DayKey } from './date'
+export type { DayKey } from './date'
 
 export type Task = {
   id: string
   text: string
-  dayKey: DayKey
+  dayKey: import('./date').DayKey
   dueAt: number | null
   createdAt: number
   completedAt: number | null
   pinned: boolean
-  calendarEventId?: string | null
+  calendarEventId: string | null
 }
 
+/**
+ * Share payload format used by src/lib/share.ts
+ */
 export type SharePayload = {
   v: 1
-  dayKey: DayKey
   exportedAt: number
-  tasks: Array<Pick<Task, 'text' | 'dueAt' | 'completedAt'>>
+  dayKey: import('./date').DayKey
+  tasks: Array<{
+    text: string
+    dueAt: number | null
+    completedAt: number | null
+  }>
 }
