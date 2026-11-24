@@ -2,7 +2,7 @@ import os
 import numpy as np, soundfile as sf, json
 sr=48000
 M=json.load(open(os.path.join(os.environ.get('SM_BUILD', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'build')), 'voice.json')))
-T=56.0; N=int(T*sr)
+T=round(M[-1]['end']+1.4,2); N=int(T*sr)
 rng=np.random.default_rng(7)
 def env(n,a,d):
     e=np.ones(n); ai=int(a*sr); e[:ai]=np.linspace(0,1,ai) if ai>0 else 1
