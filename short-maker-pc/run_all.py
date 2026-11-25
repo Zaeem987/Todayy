@@ -18,14 +18,14 @@ shutil.copy(os.path.join(src, 'timings.json'), work)
 if tempo == 'auto':
     raw = sum(sf.info(os.path.join(work, f'clean-{i+1:02d}.wav')).duration for i in range(14))
     # gaps ~2.9s are added later; aim for ~57s total voice
-    tempo = max(1.0, min(1.35, raw / (57.0 - 2.9)))
+    tempo = max(1.0, min(1.35, raw / (58.0 - 2.9)))
 tempo = float(tempo); print('tempo', round(tempo, 3))
 run = lambda *a: subprocess.run([py, *a], check=True, cwd=HERE)
 run('tempo_clips.py', work, f'{tempo:.3f}')
 run('build_from_user_voice.py', os.path.join(work, 'fast'))
 shutil.rmtree(os.path.join(B, 'frames'), ignore_errors=True)
 run('render.py'); run('audio.py')
-final = os.path.join(out, 'gold-bounce-real-or-trap_final-myvoice.mp4')
+final = os.path.join(out, 'gold-bounce-was-a-trap_2026-11-25_myvoice.mp4')
 subprocess.run([FF, '-y', '-loglevel', 'error', '-framerate', '30', '-i', os.path.join(B, 'frames', 'f%05d.jpg'), '-i', os.path.join(B, 'mix.wav'),
     '-c:v', 'libx264', '-preset', 'slow', '-crf', '18', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k',
     '-af', 'loudnorm=I=-14:TP=-1.5:LRA=11', '-ar', '48000', '-shortest', '-movflags', '+faststart', final], check=True)

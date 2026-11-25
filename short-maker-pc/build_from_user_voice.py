@@ -2,12 +2,13 @@ import os
 """python3 build_from_user_voice.py <dir with clean-01..14.wav + timings.json>"""
 import sys, json, numpy as np, soundfile as sf
 B=os.environ.get('SM_BUILD', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'build')) + os.sep; D=sys.argv[1].rstrip('/')+'/'
-caps=["Gold just bounced off a 14-month low!","So... is this a real recovery, or a BULL TRAP?","Last week, gold lost about 8%.","Its worst week since March!",
-"Why? Markets started betting on a December FED RATE HIKE, and the dollar hit its highest level since April 2025.","Then on Monday, gold jumped almost 3%,",
-"after the US Treasury Secretary warned that aggressive tightening could hurt the economy.","So which way next? Here are BOTH scenarios.",
-"BULL CASE: buyers defend 3,595, on a completed 15-minute close.","Break and hold above 3,665, and a bigger recovery opens up!","BEAR CASE: gold gets rejected under 3,650, again.",
-"Lose 3,595, and the 3,500 low is back in play.","Remember: a touch is NOT confirmation. Wait for the close, then the retest.","So... bounce, or trap? Comment BULL, or BEAR!"]
-scenes=['hook','hook','drop','drop','why','bounce','bounce','next','bull','bull','bear','bear','rule','cta']
+caps=["Yesterday, we asked: real recovery... or BULL TRAP?","Gold just answered! Down 2% in one day!","Monday's big jump? Almost all GONE.",
+"Why? First, a December FED HIKE is now priced at 96%.","Second, tech stocks sold off... and traders sold gold to cover losses.",
+"Now gold sits just above its 14-month low.","And today, the PCE inflation report is the big test.",
+"HOT inflation? The 3,500 low is back in play.","SOFT inflation? Watch for a reclaim of 3,680.",
+"Remember: a touch is NOT confirmation. Wait for the 15-minute close... then the retest.","So... was the bounce a TRAP, or is the BOTTOM close?",
+"If this helped, hit SUBSCRIBE and LIKE!","Comment one word: TRAP or BOTTOM. Agree, or see it differently? Tell me why!","Education only. Not financial advice."]
+scenes=['hook','hook','drop','why','why','bounce','next','bear','bull','rule','cta','cta','cta','cta']
 gap={"hook":0.12,"drop":0.18,"why":0.22,"bounce":0.15,"next":0.25,"bull":0.2,"bear":0.2,"rule":0.25,"cta":0.3}
 T=json.load(open(D+'timings.json'))
 T=T if isinstance(T,list) else T.get('clips',T)
