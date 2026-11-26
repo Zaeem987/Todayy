@@ -25,7 +25,7 @@ run('tempo_clips.py', work, f'{tempo:.3f}')
 run('build_from_user_voice.py', os.path.join(work, 'fast'))
 shutil.rmtree(os.path.join(B, 'frames'), ignore_errors=True)
 run('render.py'); run('audio.py')
-final = os.path.join(out, 'gold-bounce-was-a-trap_2026-11-25_myvoice.mp4')
+final = os.path.join(out, 'gold-fake-out_2026-11-26_myvoice.mp4')
 subprocess.run([FF, '-y', '-loglevel', 'error', '-framerate', '30', '-i', os.path.join(B, 'frames', 'f%05d.jpg'), '-i', os.path.join(B, 'mix.wav'),
     '-c:v', 'libx264', '-preset', 'slow', '-crf', '18', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k',
     '-af', 'loudnorm=I=-14:TP=-1.5:LRA=11', '-ar', '48000', '-shortest', '-movflags', '+faststart', final], check=True)

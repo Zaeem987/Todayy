@@ -34,46 +34,43 @@ def build(Wt, Ht, path):
     R.W, R.H = Wt, Ht
     vertical = Ht > Wt
     box = (40, int(Ht * 0.30), Wt - 10, int(Ht * 0.80)) if vertical else (int(Wt * 0.40), 90, Wt - 10, Ht - 40)
-    i0 = 12
+    i0 = 14
     pmin, pmax = R.view_range(i0, R.NC, 0.1)
     lay = Image.new('RGBA', (Wt, Ht), (0, 0, 0, 0))
-    R.draw_chart(lay, R.NC, i0, R.NC + 2, pmin, pmax, box=box, glow_last=False)
-    # glow under candles
+    R.draw_chart(lay, R.NC, i0, R.NC + 2, pmin, pmax, box=box, glow_last=False, levels=[('line', 3500, R.GOLD, '3,500', 1.0)])
     glow = lay.filter(ImageFilter.GaussianBlur(14))
     img.alpha_composite(glow); img.alpha_composite(lay)
     d = ImageDraw.Draw(img)
     X = lambda i: box[0] + (i - i0 + 0.5) * (box[2] - box[0] - 120) / (R.NC + 2 - i0)
     Y = lambda p: box[3] - (p - pmin) / (pmax - pmin) * (box[3] - box[1])
-    # Monday high -> now: red arrow down, circle the Monday high
-    hx, hy = X(R.MON1), Y(R.Hh[R.MON1])
-    rr = 66 if vertical else 44
+    # circle the V at the PCE low
+    hx, hy = X(R.LOW_I), Y(R.L[R.LOW_I])
+    rr = 70 if vertical else 46
     d.ellipse((hx - rr, hy - rr, hx + rr, hy + rr), outline=(255, 222, 0, 255), width=10 if vertical else 7)
-    ax, ay = X(R.NC - 1) + 8, Y(R.Cl[-1]) + 30
-    d.line([(hx + rr * 0.7, hy + rr * 0.7), (ax, ay)], fill=R.RED + (255,), width=18 if vertical else 12)
-    ang = math.atan2(ay - (hy + rr * 0.7), ax - (hx + rr * 0.7)); s = 50 if vertical else 34
-    d.polygon([(ax + s * math.cos(ang), ay + s * math.sin(ang)), (ax + s * 0.8 * math.cos(ang + 2.4), ay + s * 0.8 * math.sin(ang + 2.4)), (ax + s * 0.8 * math.cos(ang - 2.4), ay + s * 0.8 * math.sin(ang - 2.4))], fill=R.RED + (255,))
     if vertical:
-        R.draw_text_c(d, Wt / 2, 130, 'THE BOUNCE', R.F('anton', 190), (255, 255, 255, 255), stroke=10)
-        R.draw_text_c(d, Wt / 2, 360, 'WAS A TRAP?', R.F('anton', 190), (255, 210, 60, 255), stroke=10)
-        f = R.F('anton', 120)
-        w, h, oy = R.text_size(d, 'PCE DECIDES TODAY', f)
-        d.rounded_rectangle((Wt / 2 - w / 2 - 40, 1570, Wt / 2 + w / 2 + 40, 1570 + h + 60), 26, fill=(255, 222, 0, 255))
-        d.text((Wt / 2 - w / 2, 1600 - oy), 'PCE DECIDES TODAY', font=f, fill=(0, 0, 0, 255))
-        st, pos = sticker(d, 300, 700, '-2% IN 1 DAY', R.RED, 100, 7); img.alpha_composite(st, pos)
+        R.draw_text_c(d, Wt / 2, 130, 'BROKE 3,500', R.F('anton', 170), (255, 255, 255, 255), stroke=10)
+        R.draw_text_c(d, Wt / 2, 340, 'FAKE-OUT?', R.F('anton', 210), (255, 210, 60, 255), stroke=10)
+        st, pos = sticker(d, 280, 720, '-3%', R.RED, 110, 7); img.alpha_composite(st, pos)
+        st, pos = sticker(d, 800, 720, 'ALL BACK', R.GRN, 100, -6, (0, 0, 0)); img.alpha_composite(st, pos)
         d = ImageDraw.Draw(img)
+        f = R.F('anton', 110)
+        w, h, oy = R.text_size(d, 'REAL OR FAKE?', f)
+        d.rounded_rectangle((Wt / 2 - w / 2 - 40, 1570, Wt / 2 + w / 2 + 40, 1570 + h + 60), 26, fill=(255, 222, 0, 255))
+        d.text((Wt / 2 - w / 2, 1600 - oy), 'REAL OR FAKE?', font=f, fill=(0, 0, 0, 255))
         bd, bp = R.make_badge(96)
         img.alpha_composite(bd, (int(Wt / 2 - 250 - bp), 1790 - bp))
         d = ImageDraw.Draw(img)
         d.text((Wt / 2 - 135, 1796), 'GOLD-IQ-AI', font=R.F('Black', 40), fill=(255, 255, 255, 255))
-        d.text((Wt / 2 - 134, 1846), 'XAUUSD · 25 NOV', font=R.F('ExtraBold', 30), fill=(255, 200, 61, 255))
+        d.text((Wt / 2 - 134, 1846), 'XAUUSD · 26 NOV', font=R.F('ExtraBold', 30), fill=(255, 200, 61, 255))
     else:
-        R.draw_text_c(d, 265, 50, 'THE BOUNCE', R.F('anton', 104), (255, 255, 255, 255), stroke=7)
-        R.draw_text_c(d, 265, 185, 'WAS A', R.F('anton', 104), (255, 255, 255, 255), stroke=7)
-        f = R.F('anton', 120)
-        w, h, oy = R.text_size(d, 'TRAP?', f)
+        R.draw_text_c(d, 265, 50, 'BROKE', R.F('anton', 110), (255, 255, 255, 255), stroke=7)
+        R.draw_text_c(d, 265, 185, '3,500', R.F('anton', 110), (255, 255, 255, 255), stroke=7)
+        f = R.F('anton', 104)
+        w, h, oy = R.text_size(d, 'FAKE-OUT?', f)
         d.rounded_rectangle((265 - w / 2 - 30, 330, 265 + w / 2 + 30, 330 + h + 44), 20, fill=(255, 222, 0, 255))
-        d.text((265 - w / 2, 352 - oy), 'TRAP?', font=f, fill=(0, 0, 0, 255))
-        st, pos = sticker(d, 265, 610, '-2% IN 1 DAY', R.RED, 64, 6); img.alpha_composite(st, pos)
+        d.text((265 - w / 2, 352 - oy), 'FAKE-OUT?', font=f, fill=(0, 0, 0, 255))
+        st, pos = sticker(d, 150, 610, '-3%', R.RED, 64, 6); img.alpha_composite(st, pos)
+        st, pos = sticker(d, 390, 610, 'ALL BACK', R.GRN, 56, -5, (0, 0, 0)); img.alpha_composite(st, pos)
         bd, bp = R.make_badge(84)
         img.alpha_composite(bd, (Wt - 84 - 24 - bp, Ht - 84 - 24 - bp))
     img.convert('RGB').save(path, quality=95)

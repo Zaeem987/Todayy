@@ -2,14 +2,14 @@ import os
 """python3 build_from_user_voice.py <dir with clean-01..14.wav + timings.json>"""
 import sys, json, numpy as np, soundfile as sf
 B=os.environ.get('SM_BUILD', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'build')) + os.sep; D=sys.argv[1].rstrip('/')+'/'
-caps=["Yesterday, we asked: real recovery... or BULL TRAP?","Gold just answered! Down 2% in one day!","Monday's big jump? Almost all GONE.",
-"Why? First, a December FED HIKE is now priced at 96%.","Second, tech stocks sold off... and traders sold gold to cover losses.",
-"Now gold sits just above its 14-month low.","And today, the PCE inflation report is the big test.",
-"HOT inflation? The 3,500 low is back in play.","SOFT inflation? Watch for a reclaim of 3,680.",
-"Remember: a touch is NOT confirmation. Wait for the 15-minute close... then the retest.","So... was the bounce a TRAP, or is the BOTTOM close?",
-"If this helped, hit SUBSCRIBE and LIKE!","Comment one word: TRAP or BOTTOM. Agree, or see it differently? Tell me why!","Education only. Not financial advice."]
-scenes=['hook','hook','drop','why','why','bounce','next','bear','bull','rule','cta','cta','cta','cta']
-gap={"hook":0.12,"drop":0.18,"why":0.22,"bounce":0.15,"next":0.25,"bull":0.2,"bear":0.2,"rule":0.25,"cta":0.3}
+caps=["Yesterday, gold broke below 3,500!","Down 3% in hours... a 15-month low!","Then... it ERASED the whole drop by the close!",
+"So was that breakdown REAL... or a FAKE-out?","Core PCE inflation came in HOT. A December FED HIKE is now fully priced.",
+"Gold got DUMPED... then traders rushed to buy back their shorts before the holiday.","And this is exactly our RULE: a break is NOT confirmation!",
+"Gold never held below 3,500... so the breakdown FAILED.","Today, US markets are closed for THANKSGIVING. Thin trading means FAKE moves.",
+"BULL test: a close above 3,697. BEAR test: losing 3,446.","Wait for the 15-minute close... then the retest.",
+"Full weekly outlook this Sunday. Hit SUBSCRIBE and LIKE so you don't miss it!","Now comment one word: REAL or FAKE. Agree with me, or see it differently? Tell me why!","Education only. Not financial advice."]
+scenes=['hook','hook','erase','ask','why','why','failed','failed','holiday','levels','rule','cta','cta','cta']
+gap={"hook":0.12,"erase":0.18,"ask":0.22,"why":0.2,"failed":0.22,"holiday":0.22,"levels":0.22,"rule":0.25,"cta":0.3}
 T=json.load(open(D+'timings.json'))
 T=T if isinstance(T,list) else T.get('clips',T)
 sr0=None; out=[]; t=0.25; meta=[]; words=[]

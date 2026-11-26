@@ -60,8 +60,8 @@ for k in range(nbeats):
     add(mus,H,p+beat/2,0.08); add(mus,H,p,0.05)
     if p>25 and k%4 in (1,3): add(mus,C,p,0.22)
 # break before "next" scene
-nxt=[m for m in M if m['scene']=='next'][0]['start']
-bulls=[m for m in M if m['scene']=='bull'][0]['start']
+nxt=[m for m in M if m['scene']=='holiday'][0]['start']
+bulls=[m for m in M if m['scene']=='levels'][0]['start']
 mask=np.ones(N); i0,i1=int((nxt-0.1)*sr),int(bulls*sr); mask[i0:i1]=0.35
 mus*=mask
 # ---------- voice ducking ----------
