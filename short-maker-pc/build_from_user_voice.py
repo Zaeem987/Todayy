@@ -2,14 +2,14 @@ import os
 """python3 build_from_user_voice.py <dir with clean-01..14.wav + timings.json>"""
 import sys, json, numpy as np, soundfile as sf
 B=os.environ.get('SM_BUILD', os.path.join(os.path.dirname(os.path.abspath(__file__)), 'build')) + os.sep; D=sys.argv[1].rstrip('/')+'/'
-caps=["Yesterday, gold broke below 3,500!","Down 3% in hours... a 15-month low!","Then... it ERASED the whole drop by the close!",
-"So was that breakdown REAL... or a FAKE-out?","Core PCE inflation came in HOT. A December FED HIKE is now fully priced.",
-"Gold got DUMPED... then traders rushed to buy back their shorts before the holiday.","And this is exactly our RULE: a break is NOT confirmation!",
-"Gold never held below 3,500... so the breakdown FAILED.","Today, US markets are closed for THANKSGIVING. Thin trading means FAKE moves.",
-"BULL test: a close above 3,697. BEAR test: losing 3,446.","Wait for the 15-minute close... then the retest.",
+caps=["Gold just RIPPED back above 3,600!","Up over 2% today... and SILVER jumped 6%!","Two days ago, it hit a 15-month LOW.",
+"So was that breakdown a FAKE-out after all?","Yesterday we asked: REAL or FAKE? Price is voting FAKE... for now!",
+"Tech stocks BOUNCED back, and gold BOUNCED right with them.","But rates did NOT change. A December FED HIKE is still fully priced.",
+"And today is a HALF DAY. Thin trading can FAKE any move!","So our RULE still stands: a bounce is NOT confirmation!",
+"BULL test: a close above 3,742. BEAR test: losing 3,567.","Wait for the 15-minute close... then the retest.",
 "Full weekly outlook this Sunday. Hit SUBSCRIBE and LIKE so you don't miss it!","Now comment one word: REAL or FAKE. Agree with me, or see it differently? Tell me why!","Education only. Not financial advice."]
-scenes=['hook','hook','erase','ask','why','why','failed','failed','holiday','levels','rule','cta','cta','cta']
-gap={"hook":0.12,"erase":0.18,"ask":0.22,"why":0.2,"failed":0.22,"holiday":0.22,"levels":0.22,"rule":0.25,"cta":0.3}
+scenes=['hook','hook','low','ask','ask','why','why','holiday','notconf','levels','rule','cta','cta','cta']
+gap={"hook":0.12,"low":0.18,"ask":0.22,"why":0.2,"notconf":0.22,"holiday":0.22,"levels":0.22,"rule":0.25,"cta":0.3}
 T=json.load(open(D+'timings.json'))
 T=T if isinstance(T,list) else T.get('clips',T)
 sr0=None; out=[]; t=0.25; meta=[]; words=[]

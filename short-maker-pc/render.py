@@ -12,11 +12,12 @@ NF = int(T_END * FPS)
 # ---------------- data ----------------
 C = [list(map(float, c.split())) for c in open(B + 'gc_4h.txt').read().strip().split('|')]
 O = np.array([c[0] for c in C]); Hh = np.array([c[1] for c in C]); L = np.array([c[2] for c in C]); Cl = np.array([c[3] for c in C])
-LOW_I = int(np.argmin(L))   # Wed 25 Nov PCE low (25T14, 2H candles from 23 Nov 00 UTC, GC=F)
-BRK0 = 30            # 25T12: PCE candle breaks 3,500
-BRK1 = LOW_I
-REC_I = 34           # 25T20: recovery done
+# DAILY GC=F candles 26 Oct .. 27 Nov 2026 (Yahoo; last = Thu/Fri holiday session, live at 09:25 UTC)
+LOW_I = int(np.argmin(L))   # Wed 25 Nov low
 NC = len(C)
+TODAY = NC - 1
+BASIS = 28           # Feb futures minus spot on 27 Nov (3678 vs 3650) -> spot levels drawn on futures chart
+I0 = 8
 
 # ---------------- fonts ----------------
 def mont(sz, wt='Black'):
@@ -40,7 +41,7 @@ BG1 = (6, 8, 14); BG2 = (18, 22, 36)
 def scene_start(name):
     return min(m['start'] for m in M if m['scene'] == name)
 SC = {}
-names = ['hook', 'erase', 'ask', 'why', 'failed', 'holiday', 'levels', 'rule', 'cta']
+names = ['hook', 'low', 'ask', 'why', 'holiday', 'notconf', 'levels', 'rule', 'cta']
 for i, n in enumerate(names):
     s = 0 if n == 'hook' else scene_start(n) - 0.12
     SC[n] = s
@@ -84,13 +85,13 @@ HOOK2 = M[1]['start']
 cues = [('impact', 0.22), ('impact', HOOK2), ('pop', HOOK2)]
 for n in names[1:]:
     cues.append(('whoosh', SC[n] - 0.15))
-cues += [('neg', SC['hook'] + M[1]['start'] + 0.1), ('riser', SC['erase'] + 0.1), ('ding', SC['erase'] + 2.0), ('pop', SC['ask'] + 0.4),
-         ('pop', SC['ask'] + 0.6), ('neg', SC['why'] + 0.5), ('pop', SC['why'] + 2.5), ('pop', M[5]['start'] + 1.2),
-         ('impact', M[7]['start']), ('neg', M[7]['start'] + 0.1), ('pop', SC['holiday'] + 0.5), ('impact', SC['levels'] + 0.05),
+cues += [('riser', 0.3), ('ding', HOOK2 + 0.2), ('neg', SC['low'] + 0.3), ('pop', SC['ask'] + 0.4),
+         ('pop', SC['ask'] + 0.6), ('impact', M[4]['start'] + 1.2), ('pop', SC['why'] + 0.5), ('pop', SC['why'] + 2.0), ('neg', M[6]['start'] + 0.3),
+         ('pop', SC['holiday'] + 0.5), ('impact', SC['notconf'] + 1.0), ('impact', SC['levels'] + 0.05),
          ('impact', SC['levels'] + (SC_END['levels'] - SC['levels']) / 2), ('pop', SC['rule'] + 0.4), ('ding', SC['rule'] + 1.7),
          ('impact', SC['cta'] + 0.1), ('ding', M[11]['start'] + 1.0), ('pop', M[12]['start'])]
 for k in range(12):
-    cues.append(('tick', SC['erase'] + 0.15 + k * 0.08)); cues.append(('tick', SC['hook'] + 0.3 + k * 0.06))
+    cues.append(('tick', SC['hook'] + 0.3 + k * 0.06))
 json.dump(cues, open(B + 'cues.json', 'w'))
 
 # ---------------- helpers ----------------
@@ -257,7 +258,7 @@ def header(d, t):
     d.text((140, 50), 'GOLD-IQ-AI', font=f, fill=WHITE + (255,))
     d.text((141, 94), '@GoldIQAI', font=F('SemiBold', 24), fill=(255, 205, 80, 210))
     f2 = F('ExtraBold', 30)
-    s = 'XAUUSD · 26 NOV'
+    s = 'XAUUSD · 27 NOV'
     tw, th, oy = text_size(d, s, f2)
     rrect(d, (W - 60 - tw - 40, 58, W - 60, 114), 28, fill=(255, 255, 255, 30), outline=GOLD + (200,), width=2)
     d.text((W - 60 - tw - 20, 86 - oy - th / 2), s, font=f2, fill=GOLD + (255,))
@@ -295,10 +296,10 @@ def captions(img, t):
         for i, (sz, active), ww0 in zip(ln, sizes, ws):
             wd = ch[i]
             col = YEL if active else WHITE
-            hot = any(k in wd['w'].upper() for k in ('NOT', 'FED', 'HIKE', 'P.C.E', 'PCE', 'RULE', 'THANKSGIVING', 'SUBSCRIBE', 'LIKE'))
+            hot = any(k in wd['w'].upper() for k in ('NOT', 'FED', 'HIKE', 'RULE', 'HALF', 'DAY.', 'SILVER', 'SUBSCRIBE', 'LIKE'))
             if hot and not active: col = (255, 230, 150)
-            if any(k in wd['w'].upper() for k in ('REAL', 'BULL', 'ERASED')): col = GRN if active else (150, 255, 190)
-            if any(k in wd['w'].upper() for k in ('FAKE', 'HOT', '3%', 'FAILED', 'BEAR', 'DUMPED')): col = RED if active else (255, 160, 160)
+            if any(k in wd['w'].upper() for k in ('REAL', 'BULL', 'RIPPED', 'BOUNCED')): col = GRN if active else (150, 255, 190)
+            if any(k in wd['w'].upper() for k in ('FAKE', 'LOW', 'BEAR')): col = RED if active else (255, 160, 160)
             ff = F('Black', sz)
             ww, hh, oy = text_size(d, words[i], ff)
             yy = y + li * 105 + (82 - hh) / 2
@@ -370,133 +371,135 @@ def frame(fi):
     shake = (0, 0); zoom = 1.0
     d = ImageDraw.Draw(lay)
 
+    LV36 = ('line', 3600 + BASIS, GOLD, '3,600', 1.0)
     if sc == 'hook':
-        p = easeio(ts / dur)
-        i0 = 10; i1 = BRK1 + 6
-        pmin, pmax = view_range(i0, BRK1 + 1, 0.15)
-        n_vis = lerp(BRK0 - 2, BRK1 + 1, ease(ts / 1.6))
-        lv = [('line', 3500, GOLD, '3,500', 1.0)]
-        X, Y = draw_chart(lay, n_vis, i0, i1, pmin, pmax, box=HB, levels=lv, glow_last=False)
+        i0 = I0; i1 = NC + 2
+        pmin, pmax = view_range(i0, NC, 0.12)
+        n_vis = lerp(TODAY - 0.0, NC, ease((ts - 0.15) / 1.4))
+        X, Y = draw_chart(lay, n_vis, i0, i1, pmin, pmax, box=HB, levels=[LV36], glow_last=False)
         d = ImageDraw.Draw(lay)
-        if n_vis > BRK1:
-            cx, cy = X(LOW_I), Y(L[LOW_I])
-            rr = 58 + 8 * math.sin(t * 8)
-            d.ellipse((cx - rr, cy - rr, cx + rr, cy + rr), outline=RED + (255,), width=7)
         a1 = ease(ts / 0.25)
         if t < M[1]['start']:
-            draw_text_c(d, W / 2, 960, 'YESTERDAY', F('Black', 56), GOLD + (int(255 * a1),), stroke=4)
-            f = F('anton', int(140 * (1.4 - 0.4 * a1)))
-            draw_text_c(d, W / 2, 1050, 'GOLD BROKE 3,500!', f, (255, 255, 255, int(255 * a1)), stroke=8)
+            draw_text_c(d, W / 2, 960, 'TODAY', F('Black', 56), GOLD + (int(255 * a1),), stroke=4)
+            f = F('anton', int(130 * (1.4 - 0.4 * a1)))
+            draw_text_c(d, W / 2, 1050, 'BACK ABOVE 3,600!', f, (255, 255, 255, int(255 * a1)), stroke=8)
         else:
             k = t - M[1]['start']
             sc2 = 1.6 - 0.6 * ease(k / 0.18)
-            draw_text_c(d, W / 2, 960, '15-MONTH LOW', F('Black', 56), GOLD + (255,), stroke=4)
-            banner(d, W / 2, 1050, '-3% IN HOURS', RED, min(1, k / 0.15), fsz=int(120 * sc2), tc=(255, 255, 255))
-            if k < 0.3: shake = (int(18 * math.sin(k * 90) * (0.3 - k) / 0.3), int(12 * math.cos(k * 70) * (0.3 - k) / 0.3))
+            draw_text_c(d, W / 2, 960, 'GOLD FUTURES · DAILY', F('Black', 50), GOLD + (255,), stroke=4)
+            banner(d, W / 2, 1050, '+2.3% TODAY', GRN, min(1, k / 0.15), fsz=int(120 * sc2))
+            if k > 1.6:
+                banner(d, W / 2, 1230, 'SILVER +6%', (200, 205, 215), min(1, (k - 1.6) / 0.15), fsz=70)
+        if n_vis >= NC - 0.05:
+            cx, cy = X(TODAY), Y(Hh[TODAY])
+            rr = 40 + 6 * math.sin(t * 8)
+            d.ellipse((cx - rr, cy - rr - 20, cx + rr, cy + rr - 20), outline=GRN + (255,), width=6)
         if t < 0.5: shake = (int(14 * math.sin(t * 80) * (0.5 - t) / 0.5), 0)
-    elif sc == 'erase':
-        p = ease(ts / (dur * 0.75))
-        n_vis = lerp(LOW_I + 1, REC_I + 1, p)
-        i0 = 18; i1 = NC + 2
-        pmin, pmax = view_range(i0, NC, 0.15)
-        lv = [('line', 3500, GOLD, '3,500', 1.0)]
-        X, Y = draw_chart(lay, n_vis, i0, i1, pmin, pmax, levels=lv, glow_last=False)
+    elif sc == 'low':
+        i0 = I0; i1 = NC + 2
+        pmin, pmax = view_range(i0, NC, 0.12)
+        X, Y = draw_chart(lay, NC, i0, i1, pmin, pmax, levels=[LV36], glow_last=False)
         d = ImageDraw.Draw(lay)
         ba = ease(ts / 0.4)
         cx, cy = X(LOW_I), Y(L[LOW_I])
-        d.ellipse((cx - 50, cy - 50, cx + 50, cy + 50), outline=RED + (int(255 * ba),), width=6)
-        if n_vis > REC_I - 1:
-            g = ease((n_vis - (REC_I - 1)) / 1.5)
-            banner(d, W / 2, 1150, 'ERASED IT ALL', GRN, g, fsz=110)
+        rr = 55 + 6 * math.sin(t * 8)
+        d.ellipse((cx - rr, cy - rr, cx + rr, cy + rr), outline=RED + (int(255 * ba),), width=7)
+        banner(d, W / 2, 200, '15-MONTH LOW', RED, ts / 0.3, fsz=96, tc=(255, 255, 255))
+        draw_text_c(d, cx, cy + 80, '2 DAYS AGO', F('Black', 44), (255, 255, 255, int(255 * ba)), stroke=4)
         zoom = 1 + 0.04 * ts / dur
     elif sc == 'ask':
-        pmin, pmax = view_range(18, NC, 0.15)
-        draw_chart(lay, REC_I + 1, 18, NC + 2, pmin, pmax, dim=True, glow_last=False)
+        pmin, pmax = view_range(I0, NC, 0.12)
+        draw_chart(lay, NC, I0, NC + 2, pmin, pmax, dim=True, glow_last=False)
         d = ImageDraw.Draw(lay)
         a = back(ts / 0.35)
+        t5 = M[4]['start'] - SC['ask']
+        vote = ease((ts - t5 - 1.3) / 0.3) if ts > t5 + 1.3 else 0
         draw_text_c(d, W / 2, 400, 'THE BREAKDOWN WAS...', F('anton', 96), (255, 255, 255, 255), stroke=7)
         for k, (s_, col) in enumerate([('REAL', GRN), ('FAKE', RED)]):
             cx = W / 4 + k * W / 2
             pulse = 1 + 0.05 * math.sin(ts * 9 + k * 3)
-            w2 = 210 * a * pulse; h2 = 110 * a * pulse
+            grow = (1 + 0.18 * vote) if k == 1 else (1 - 0.25 * vote)
+            w2 = 210 * a * pulse * grow; h2 = 110 * a * pulse * grow
+            cc = col if (k == 1 or vote < 0.5) else (70, 90, 80)
             if w2 > 5:
-                rrect(d, (cx - w2, 760 - h2, cx + w2, 760 + h2), 30, fill=col + (255,))
-                if a > 0.6: draw_text_c(d, cx, 760 - 62, s_, F('anton', 110), (0, 0, 0, 255) if k == 0 else (255, 255, 255, 255))
-        draw_text_c(d, W / 2, 920, '?', F('anton', 160), GOLD + (255,), stroke=6)
+                rrect(d, (cx - w2, 760 - h2, cx + w2, 760 + h2), 30, fill=cc + (255,))
+                if a > 0.6: draw_text_c(d, cx, 760 - 62, s_, F('anton', int(110 * grow)), (0, 0, 0, 255) if k == 0 else (255, 255, 255, 255))
+        if vote > 0:
+            draw_text_c(d, W / 2, 960, 'PRICE IS VOTING FAKE', F('anton', 84), GOLD + (int(255 * vote),), stroke=6)
+            draw_text_c(d, W / 2, 1080, '...FOR NOW', F('Black', 56), (255, 255, 255, int(255 * vote)), stroke=4)
+        else:
+            draw_text_c(d, W / 2, 920, '?', F('anton', 160), GOLD + (255,), stroke=6)
     elif sc == 'why':
-        pmin, pmax = view_range(18, NC, 0.15)
-        draw_chart(lay, NC, 18, NC + 2, pmin, pmax, dim=True, glow_last=False)
+        pmin, pmax = view_range(I0, NC, 0.12)
+        draw_chart(lay, NC, I0, NC + 2, pmin, pmax, dim=True, glow_last=False)
         d = ImageDraw.Draw(lay)
-        draw_text_c(d, W / 2, 360, 'WHAT HAPPENED', F('anton', 110), GOLD + (255,), stroke=6)
-        card(d, (70, 560, 1010, 760), 'HOT PCE: 3.3%', 'Core inflation above forecast', RED, (ts - 0.4) / 0.4, icon_arrow_up)
-        card(d, (70, 800, 1010, 1000), 'FED HIKE: PRICED', 'December hike fully priced in', GOLD, (ts - 2.4) / 0.4, icon_bank)
-        t2 = M[5]['start'] - SC['why']
-        card(d, (70, 1040, 1010, 1240), 'SHORTS BOUGHT BACK', 'Sellers covered before the holiday', GRN, (ts - t2 - 1.2) / 0.4, icon_arrow_up)
-        if t2 - 0.2 < ts < t2 + 1.2:
-            banner(d, W / 2, 1280, 'DUMPED!', RED, (ts - t2 + 0.2) / 0.2, fsz=80, tc=(255, 255, 255))
-    elif sc == 'failed':
-        i0 = 18; i1 = NC + 2
-        pmin, pmax = view_range(i0, NC, 0.15)
-        lv = [('line', 3500, GOLD, '3,500', 1.0)]
-        X, Y = draw_chart(lay, NC, i0, i1, pmin, pmax, levels=lv, glow_last=False)
+        draw_text_c(d, W / 2, 360, 'WHY IT BOUNCED', F('anton', 110), GOLD + (255,), stroke=6)
+        card(d, (70, 560, 1010, 760), 'TECH STOCKS BOUNCED', 'Nasdaq futures +2.9% overnight', GRN, (ts - 0.3) / 0.4, icon_arrow_up)
+        card(d, (70, 800, 1010, 1000), 'GOLD BOUNCED TOO', 'Back above 3,600', GOLD, (ts - 1.8) / 0.4, icon_arrow_up)
+        t7 = M[6]['start'] - SC['why']
+        card(d, (70, 1040, 1010, 1240), 'FED HIKE: STILL PRICED', 'December hike ~99% (8-9 Dec)', RED, (ts - t7 - 0.9) / 0.4, icon_bank)
+        if t7 - 0.1 < ts < t7 + 1.0:
+            banner(d, W / 2, 1280, 'RATES: NO CHANGE', RED, (ts - t7 + 0.1) / 0.2, fsz=72, tc=(255, 255, 255))
+    elif sc == 'holiday':
+        a = ease(ts / 0.3)
+        draw_text_c(d, W / 2, 330, 'HALF DAY', F('anton', 170), GOLD + (int(255 * a),), stroke=8)
+        banner(d, W / 2, 560, 'US CLOSES 1 PM ET', RED, (ts - 0.4) / 0.3, fsz=80, tc=(255, 255, 255))
+        # clock
+        ca = ease((ts - 0.6) / 0.3)
+        if ca > 0:
+            d.ellipse((W / 2 - 90, 720, W / 2 + 90, 900), outline=WHITE + (int(255 * ca),), width=8)
+            d.line([(W / 2, 810), (W / 2, 740)], fill=WHITE + (int(255 * ca),), width=8)
+            d.line([(W / 2, 810), (W / 2 + 40, 790)], fill=GOLD + (int(255 * ca),), width=8)
+        for k in range(14):
+            hgt = (40 + 200 * abs(math.sin(k * 1.7))) * (0.25 if k > 6 else 1.0)
+            pa = ease((ts - 0.8 - k * 0.06) / 0.3)
+            x0 = 110 + k * 62
+            d.rectangle((x0, 1180 - hgt * pa, x0 + 44, 1180), fill=(GOLD if k <= 6 else (120, 120, 140)) + (255,))
+        if ts > 1.6:
+            b = ease((ts - 1.6) / 0.3)
+            draw_text_c(d, W / 2, 1220, 'THIN TRADING = FAKE MOVES', F('Black', 58), (255, 255, 255, int(255 * b)), stroke=4)
+    elif sc == 'notconf':
+        i0 = I0; i1 = NC + 2
+        pmin, pmax = view_range(i0, NC, 0.12)
+        X, Y = draw_chart(lay, NC, i0, i1, pmin, pmax, levels=[LV36], glow_last=False)
         d = ImageDraw.Draw(lay)
-        banner(d, W / 2, 200, 'A BREAK IS NOT CONFIRMATION', GOLD, ts / 0.3, fsz=60)
-        t8 = M[7]['start'] - SC['failed']
-        if ts > t8:
-            # highlight: closes back above 3,500
-            for i in range(LOW_I, REC_I + 1):
-                d.rectangle((X(i) - 26, Y(Hh[i]) - 14, X(i) + 26, Y(L[i]) + 14), outline=GRN + (200,), width=3)
-            k = ts - t8
+        banner(d, W / 2, 200, 'A BOUNCE IS NOT CONFIRMATION', GOLD, ts / 0.3, fsz=60)
+        if ts > 0.9:
+            k = ts - 0.9
             s = 1.6 - 0.6 * ease(k / 0.2)
             stamp = Image.new('RGBA', (900, 220), (0, 0, 0, 0)); sd = ImageDraw.Draw(stamp)
-            sd.rounded_rectangle((10, 10, 890, 210), 24, outline=RED + (255,), width=12)
-            draw_text_c(sd, 450, 40, 'BREAKDOWN FAILED', F('anton', 120), RED + (255,))
+            sd.rounded_rectangle((10, 10, 890, 210), 24, outline=YEL + (255,), width=12)
+            draw_text_c(sd, 450, 40, 'NOT CONFIRMED YET', F('anton', 110), YEL + (255,))
             stamp = stamp.rotate(-6, resample=Image.BICUBIC, expand=True)
             stamp = stamp.resize((int(stamp.width * s), int(stamp.height * s)), Image.BICUBIC)
             lay.alpha_composite(stamp, (int(W / 2 - stamp.width / 2), int(1180 - stamp.height / 2)))
             d = ImageDraw.Draw(lay)
             if k < 0.3: shake = (int(16 * math.sin(k * 90) * (0.3 - k) / 0.3), 0)
         zoom = 1 + 0.03 * ts / dur
-    elif sc == 'holiday':
-        a = ease(ts / 0.3)
-        # flag stripes
-        for k in range(7):
-            col = (200, 40, 50) if k % 2 == 0 else (235, 235, 240)
-            d.rectangle((0, 300 + k * 40, W, 340 + k * 40), fill=col + (int(60 * a),))
-        draw_text_c(d, W / 2, 330, 'THANKSGIVING', F('anton', 140), GOLD + (int(255 * a),), stroke=8)
-        banner(d, W / 2, 520, 'US MARKETS CLOSED', RED, (ts - 0.4) / 0.3, fsz=80, tc=(255, 255, 255))
-        # thin volume bars
-        for k in range(14):
-            hgt = (40 + 260 * abs(math.sin(k * 1.7))) * (0.25 if k > 6 else 1.0)
-            pa = ease((ts - 0.8 - k * 0.06) / 0.3)
-            x0 = 110 + k * 62
-            d.rectangle((x0, 1150 - hgt * pa, x0 + 44, 1150), fill=(GOLD if k <= 6 else (120, 120, 140)) + (255,))
-        if ts > 1.6:
-            b = ease((ts - 1.6) / 0.3)
-            draw_text_c(d, W / 2, 1190, 'THIN TRADING = FAKE MOVES', F('Black', 58), (255, 255, 255, int(255 * b)), stroke=4)
     elif sc == 'levels':
-        i0 = 14; i1 = NC + 12
-        pmin, pmax = 3420, 3730
-        last = NC - 1; cp = Cl[-1]
+        i0 = 17; i1 = NC + 7
+        pmin, pmax = 3390, 3880
+        last = TODAY; cp = Cl[-1]
         half = dur / 2
         bull = ts < half
         col = GRN if bull else RED
+        bu, be = 3742 + BASIS, 3567 + BASIS
         if bull:
-            pts = [(last, cp), (last + 3, 3650), (last + 5, 3632), (last + 8, 3680), (last + 11, 3712)]
+            pts = [(last, cp), (last + 1.5, bu - 40), (last + 2.5, bu - 60), (last + 4, bu + 40), (last + 5.5, bu + 110)]
         else:
-            pts = [(last, cp), (last + 3, 3575), (last + 5, 3530), (last + 7, 3548), (last + 11, 3440)]
+            pts = [(last, cp), (last + 1.5, be + 20), (last + 2.5, be - 40), (last + 3.5, be - 15), (last + 5.5, be - 130)]
         tt = ts if bull else ts - half
         prog = ease((tt - 0.3) / max(1.0, half - 0.6))
-        lv = [('line', 3697, GRN, 'BULL TEST 3,697', 1.0 if bull else 0.45),
-              ('line', 3446, RED, 'BEAR TEST 3,446', 1.0 if not bull else 0.45)]
+        lv = [('line', bu, GRN, 'BULL TEST 3,742', 1.0 if bull else 0.45),
+              ('line', be, RED, 'BEAR TEST 3,567', 1.0 if not bull else 0.45)]
         draw_chart(lay, NC, i0, i1, pmin, pmax, levels=lv, proj=(pts, col, prog), glow_last=False)
         d = ImageDraw.Draw(lay)
-        banner(d, W / 2, 200, 'CLOSE ABOVE 3,697?' if bull else 'LOSE 3,446?', col, tt / 0.3, fsz=84, tc=(0, 0, 0) if bull else (255, 255, 255))
+        banner(d, W / 2, 200, 'CLOSE ABOVE 3,742?' if bull else 'LOSE 3,567?', col, tt / 0.3, fsz=84, tc=(0, 0, 0) if bull else (255, 255, 255))
         zoom = 1 + 0.03 * ts / dur
     elif sc == 'rule':
         a = ease(ts / 0.3)
         draw_text_c(d, W / 2, 330, 'THE RULE', F('anton', 90), GOLD + (int(255 * a),), stroke=5)
-        for k, (title, ok) in enumerate([('BREAK ONLY', False), ('CLOSE + RETEST', True)]):
+        for k, (title, ok) in enumerate([('BOUNCE ONLY', False), ('CLOSE + RETEST', True)]):
             pa = ease((ts - 0.3 - k * 1.3) / 0.35)
             if pa <= 0: continue
             x0 = 80 + k * 470; y0 = 470; x1 = x0 + 450; y1 = 1130
